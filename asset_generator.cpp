@@ -204,7 +204,7 @@ void generate_data() {
     assert(sprites.size() == 2);
 
     // export binary data to be read during runtime
-    std::ofstream ofs(data_path("../assets/asset.bin"), std::ios::out | std::ios::binary);
+    std::ofstream ofs(data_path("asset.bin"), std::ios::out | std::ios::binary);
     
     write_chunk("pale", palettes, &ofs);
     write_chunk("tile", tiles, &ofs);

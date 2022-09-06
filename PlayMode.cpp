@@ -1,5 +1,7 @@
 #include "PlayMode.hpp"
 
+#include "asset_loader.hpp"
+
 //for the GL_ERRORS() macro:
 #include "gl_errors.hpp"
 
@@ -15,6 +17,8 @@ PlayMode::PlayMode() {
 	// or, at least, if you do hardcode them like this,
 	//  make yourself a script that spits out the code that you paste in here
 	//   and check that script into your repository.
+
+	load_asset(ppu);
 
 	//Also, *don't* use these tiles in your game:
 
