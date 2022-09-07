@@ -106,7 +106,9 @@ void generate_data() {
                         palette_added[1],
                         palette_added[2]});
     tiles.push_back({ bit0, bit1 });
-    sprites.push_back({ 128, 120, 0, 0b0000001 });
+    for (uint32_t i = 0; i < 60; i++) {
+        sprites.push_back({ 0, 0, 1, 0b0000001 });
+    }
 
     // reset intermediary storages
     palette_added.clear();
@@ -201,7 +203,7 @@ void generate_data() {
     // sanity check on what I'm importing
     assert(palettes.size() == 4);
     assert(tiles.size() == 4);
-    assert(sprites.size() == 2);
+    assert(sprites.size() == 61);
 
     // export binary data to be read during runtime
     std::ofstream ofs(data_path("asset.bin"), std::ios::out | std::ios::binary);

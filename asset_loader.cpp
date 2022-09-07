@@ -12,10 +12,6 @@ void load_asset(PPU466 &ppu) {
 
     std::ifstream ifs(data_path("asset.bin"), std::ios::binary);
 
-    // uint8_t palette_index = 0;
-    // uint8_t tile_index = 0;
-    // uint8_t sprite_index = 0;
-
     std::vector< PPU466::Palette > palettes;
     std::vector< PPU466::Tile > tiles;
     std::vector< PPU466::Sprite > sprites;

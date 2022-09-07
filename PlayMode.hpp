@@ -23,6 +23,18 @@ struct PlayMode : Mode {
 		uint8_t pressed = 0;
 	} left, right, down, up;
 
+	//Bullet struct
+	struct Bullet {
+		glm::vec2 sprite_at;
+		glm::vec2 dir;
+	};
+
+	std::vector< Bullet > bullets;
+	uint8_t active_bullet_count = 0;
+
+	float elapsed_time_since = 0;
+	float bullet_interval = 3;
+
 	//some weird background animation:
 	float background_fade = 0.0f;
 
