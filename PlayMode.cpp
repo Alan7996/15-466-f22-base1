@@ -1,6 +1,6 @@
 #include "PlayMode.hpp"
 
-//#include "asset_generator.hpp"
+#include "asset_generator.hpp"
 #include "asset_loader.hpp"
 
 //for the GL_ERRORS() macro:
@@ -19,7 +19,7 @@ PlayMode::PlayMode() {
 	//  make yourself a script that spits out the code that you paste in here
 	//   and check that script into your repository.
 
-	//generate_data();
+	generate_data();
 
 	// Player (King) is 0 index, Bullet (Pawn) is 1 index
 	load_asset(ppu);
@@ -33,30 +33,44 @@ PlayMode::PlayMode() {
 	std::random_device rd;
 	std::mt19937 rng(rd());
 
-	uint8_t bgWidth = PPU466::BackgroundWidth;
-	uint8_t bgHeight = PPU466::BackgroundHeight;
+	uint32_t scrWidth = PPU466::ScreenWidth;
+	uint32_t scrHeight = PPU466::ScreenHeight;
 
-	std::uniform_int_distribution<int> uniWidth(0, bgWidth);
-	std::uniform_int_distribution<int> uniHeight(0, bgHeight);
-
+	std::uniform_int_distribution<int> uniWidth(0, scrWidth);
+	std::uniform_int_distribution<int> uniHeight(0, scrHeight);
+		
 	for (uint32_t i = 1; i < 61; i++) {
 		if (i % 4 == 0) { // top
-			ppu.sprites[i].x = static_cast<uint8_t>(uniWidth(rng)) * 8u;
-			ppu.sprites[i].y = (bgHeight + 1) * 8u;
+			ppu.sprites[i].x = static_cast<uint8_t>(uniWidth(rng));
+			ppu.sprites[i].y = static_cast<uint8_t>(scrHeight);
+			ppu.sprites[i].index = 8;
 		} else if (i % 4 == 1) { // right
-			ppu.sprites[i].x = (bgWidth - 1) * 8u;
-			ppu.sprites[i].y = static_cast<uint8_t>(uniHeight(rng)) * 8u;
+			ppu.sprites[i].x = static_cast<uint8_t>(scrWidth) - 1;
+			ppu.sprites[i].y = static_cast<uint8_t>(uniHeight(rng));
+			ppu.sprites[i].index = 9;
 		} else if (i % 4 == 2) { // bottom
-			ppu.sprites[i].x = static_cast<uint8_t>(uniWidth(rng)) * 8u;
+			ppu.sprites[i].x = static_cast<uint8_t>(uniWidth(rng));
 			ppu.sprites[i].y = 0u;
+			ppu.sprites[i].index = 6;
 		} else if (i % 4 == 3) { // left
 			ppu.sprites[i].x = 0u;
-			ppu.sprites[i].y = static_cast<uint8_t>(uniHeight(rng)) * 8u;
+			ppu.sprites[i].y = static_cast<uint8_t>(uniHeight(rng));
+			ppu.sprites[i].index = 7;
 		}
 		ppu.sprites[i].attributes |= 0b10000000; // set behind background, so don't render for now
 		
 		bullets.push_back({glm::vec2(ppu.sprites[i].x, ppu.sprites[i].y), glm::vec2()});
 	}
+
+	win_bg.resize(ppu.BackgroundWidth * ppu.BackgroundHeight);
+	uint16_t win_data = 0b0000010000001010u;
+	std::fill(win_bg.begin(), win_bg.end(), win_data);
+
+	lose_bg.resize(ppu.BackgroundWidth * ppu.BackgroundHeight);
+	uint16_t lose_data = 0b0000010100001011u;
+	std::fill(lose_bg.begin(), lose_bg.end(), lose_data);
+
+	gameState = PLAYING;
 
 }
 
@@ -104,11 +118,25 @@ bool PlayMode::handle_event(SDL_Event const &evt, glm::uvec2 const &window_size)
 
 void PlayMode::update(float elapsed) {
 
+	if (gameState != PLAYING) return;
+
 	constexpr float PlayerSpeed = 30.0f;
-	if (left.pressed) player_at.x -= PlayerSpeed * elapsed;
-	if (right.pressed) player_at.x += PlayerSpeed * elapsed;
-	if (down.pressed) player_at.y -= PlayerSpeed * elapsed;
-	if (up.pressed) player_at.y += PlayerSpeed * elapsed;
+	if (left.pressed) {
+		player_at.x -= PlayerSpeed * elapsed;
+		ppu.sprites[0].index = 5;
+	}
+	if (right.pressed) {
+		player_at.x += PlayerSpeed * elapsed;
+		ppu.sprites[0].index = 3;
+	}
+	if (down.pressed) {
+		player_at.y -= PlayerSpeed * elapsed;
+		ppu.sprites[0].index = 4;
+	}
+	if (up.pressed) {
+		player_at.y += PlayerSpeed * elapsed;
+		ppu.sprites[0].index = 2;
+	}
 
 	//reset button press counters:
 	left.downs = 0;
@@ -116,29 +144,40 @@ void PlayMode::update(float elapsed) {
 	up.downs = 0;
 	down.downs = 0;
 
-	// activate a new bullet every certain time interval
-	elapsed_time_since += elapsed;
-	if (elapsed_time_since > bullet_interval) {
-		elapsed_time_since = 0;
-		bullet_interval -= 0.05f;
-		ppu.sprites[1 + active_bullet_count].attributes &= 0b01111111; // revert tile back to in front of background
-		bullets[active_bullet_count].dir = glm::vec2(
-			(player_at.x - bullets[active_bullet_count].sprite_at.x) / std::abs(player_at.x - bullets[active_bullet_count].sprite_at.x), 
-			(player_at.y - bullets[active_bullet_count].sprite_at.y) / std::abs(player_at.y - bullets[active_bullet_count].sprite_at.y));
-		active_bullet_count++;
-	}
-
 	// move activated bullets
-	float bulletSpeed = 20.0f;
+	static float bulletSpeed = 20.0f;
 
 	for (uint8_t i = 0; i < active_bullet_count; i++) {
 		bullets[i].sprite_at.x += bullets[i].dir.x * bulletSpeed * elapsed;
 		bullets[i].sprite_at.y += bullets[i].dir.y * bulletSpeed * elapsed;
-		if (bullets[i].sprite_at.x < 0 || bullets[i].sprite_at.x > PPU466::BackgroundWidth * 8 ||
-			bullets[i].sprite_at.y < 0 || bullets[i].sprite_at.y > PPU466::BackgroundHeight * 8) {
+		if (bullets[i].sprite_at.x < 0 || bullets[i].sprite_at.x > PPU466::ScreenWidth ||
+			bullets[i].sprite_at.y < 0 || bullets[i].sprite_at.y > PPU466::ScreenHeight) {
 			ppu.sprites[i + 1].attributes |= 0b10000000; // make invisible
 			bullets[i].dir = glm::vec2(); // reset movement
 		}
+	}
+
+	// activate a new bullet every certain time interval
+	elapsed_time_since += elapsed;
+	if (gameState == PLAYING && elapsed_time_since > bullet_interval) {
+		if (active_bullet_count == 60) {
+			gameWin();
+			return;
+		}
+
+		elapsed_time_since = 0;
+		bullet_interval -= 0.05f;
+
+		ppu.sprites[1 + active_bullet_count].attributes &= 0b01111111; // revert tile back to in front of background
+
+		// initialize new bullet
+		bullets[active_bullet_count].sprite_at = glm::vec2(ppu.sprites[1 + active_bullet_count].x, ppu.sprites[1 + active_bullet_count].y);
+		bullets[active_bullet_count].dir = glm::vec2(
+			player_at.x - bullets[active_bullet_count].sprite_at.x == 0 ? 0 : (player_at.x - bullets[active_bullet_count].sprite_at.x) / std::abs(player_at.x - bullets[active_bullet_count].sprite_at.x), 
+			player_at.y - bullets[active_bullet_count].sprite_at.y == 0 ? 0 : (player_at.y - bullets[active_bullet_count].sprite_at.y) / std::abs(player_at.y - bullets[active_bullet_count].sprite_at.y));
+
+		active_bullet_count++;
+		bulletSpeed += 1.0f;
 	}
 }
 
@@ -161,4 +200,20 @@ void PlayMode::draw(glm::uvec2 const &drawable_size) {
 
 	//--- actually draw ---
 	ppu.draw(drawable_size);
+}
+
+void PlayMode::gameWin() {
+
+	// printf("%zu\n", win_bg.size());
+	gameState = VICTORY;
+
+	// make player and all bullets invisible
+	for (uint8_t i = 0; i < 61; i++) {
+		ppu.sprites[i].attributes |= 0b10000000;
+	}
+
+	// activate victory background
+    for (uint32_t i = 0; i < win_bg.size(); i++) {
+		ppu.background[i] = win_bg[i];
+	}
 }

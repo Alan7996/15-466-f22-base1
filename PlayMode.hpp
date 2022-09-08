@@ -15,7 +15,18 @@ struct PlayMode : Mode {
 	virtual void update(float elapsed) override;
 	virtual void draw(glm::uvec2 const &drawable_size) override;
 
+	void gameWin();
+
 	//----- game state -----
+	enum GameState{
+		PLAYING,
+		VICTORY,
+		DEFEAT
+	} gameState;
+
+	// holders for win/lose background
+    std::vector< uint16_t > win_bg;
+    std::vector< uint16_t > lose_bg;
 
 	//input tracking:
 	struct Button {

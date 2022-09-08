@@ -27,182 +27,467 @@ void generate_data() {
 
     // load_png call eror catching and palette extraction code as suggested by David Lyons (dalyons)
 
-    // Load player (King)
-    // King takes index 0 of palette, tile, and sprite, and is rendered in front of the background.
-    try {
-        load_png(data_path("../assets/King.png"), &palette_size, &palette_data, UpperLeftOrigin);
-    }
-    catch (std::runtime_error& e) {
-        std::cout << e.what();
-    }
-    assert(palette_size.x == 8 && palette_size.y == 8);
+    // Generate background (Chessboard)
+    {// Background is consisted of two tiles alternating throughout the buffer, taking of indexes 0 and 1 of palette and tile.
+        try {
+            load_png(data_path("../assets/Chessboard_tile1.png"), &palette_size, &palette_data, UpperLeftOrigin);
+        }
+        catch (std::runtime_error& e) {
+            std::cout << e.what();
+        }
+        assert(palette_size.x == 8 && palette_size.y == 8);
 
-    for (uint32_t y = 0; y < palette_size.y; y++) {
-        for (uint32_t x = 0; x < palette_size.x; x++) {
-            glm::u8vec4 color = palette_data[y * palette_size.x + x];
-            if (std::find(palette_added.begin(), palette_added.end(), color) == palette_added.end()) 
-                palette_added.push_back(color);
+        for (uint32_t y = 0; y < palette_size.y; y++) {
+            for (uint32_t x = 0; x < palette_size.x; x++) {
+                glm::u8vec4 color = palette_data[y * palette_size.x + x];
+                if (std::find(palette_added.begin(), palette_added.end(), color) == palette_added.end()) 
+                    palette_added.push_back(color);
 
-            if (palette_added[0] == color) {
-                bit0[y] |= 1 << x;
-            } else if (palette_added[1] == color) {
-                bit1[y] |= 1 << x;
-            } else if (palette_added[2] == color) {
-                bit1[y] |= 1 << x;
-                bit0[y] |= 1 << x;
-            } else {
-                // shouldn't happen
-                std::cout << "The png has more than 3 colors!" << std::endl;
+                if (palette_added[0] == color) {
+                    bit1[y] |= 1 << x;
+                } else if (palette_added[1] == color) {
+                    bit1[y] |= 1 << x;
+                    bit0[y] |= 1 << x;
+                } else {
+                    // shouldn't happen
+                    std::cout << "The png has more than 2 colors!" << std::endl;
+                }
             }
         }
-    }
-    assert(palette_added.size() == 3); // should only contain white and green
+        assert(palette_added.size() == 2); // should only contain white, gray, and black
 
-    palettes.push_back({glm::u8vec4(0, 0, 0, 255),
-                        palette_added[0],
-                        palette_added[1],
-                        palette_added[2]});
-    tiles.push_back({ bit0, bit1 });
-    sprites.push_back({ 128, 120, 0, 0b0000000 });
+        palettes.push_back({glm::u8vec4(),
+                            glm::u8vec4(0, 0, 0, 255),
+                            palette_added[0],
+                            palette_added[1]});
+        tiles.push_back({ bit0, bit1 });
 
-    // reset intermediary storages
-    palette_added.clear();
-    bit0.fill(0);
-    bit1.fill(0);
+        // reset intermediary storages
+        palette_added.clear();
+        bit0.fill(0);
+        bit1.fill(0);
 
-    // Load bullet (Pawn)
-    // Pawn takes index 1 of palette, tile, and sprite, and is rendered in front of the background.
-    try {
-        load_png(data_path("../assets/Pawn.png"), &palette_size, &palette_data, UpperLeftOrigin);
-    }
-    catch (std::runtime_error& e) {
-        std::cout << e.what();
-    }
-    assert(palette_size.x == 8 && palette_size.y == 8);
+        try {
+            load_png(data_path("../assets/Chessboard_tile2.png"), &palette_size, &palette_data, UpperLeftOrigin);
+        }
+        catch (std::runtime_error& e) {
+            std::cout << e.what();
+        }
+        assert(palette_size.x == 8 && palette_size.y == 8);
 
-    for (uint32_t y = 0; y < palette_size.y; y++) {
-        for (uint32_t x = 0; x < palette_size.x; x++) {
-            glm::u8vec4 color = palette_data[y * palette_size.x + x];
-            if (std::find(palette_added.begin(), palette_added.end(), color) == palette_added.end()) 
-                palette_added.push_back(color);
+        for (uint32_t y = 0; y < palette_size.y; y++) {
+            for (uint32_t x = 0; x < palette_size.x; x++) {
+                glm::u8vec4 color = palette_data[y * palette_size.x + x];
+                if (std::find(palette_added.begin(), palette_added.end(), color) == palette_added.end()) 
+                    palette_added.push_back(color);
 
-            if (palette_added[0] == color) {
-                bit0[y] |= 1 << x;
-            } else if (palette_added[1] == color) {
-                bit1[y] |= 1 << x;
-            } else if (palette_added[2] == color) {
-                bit1[y] |= 1 << x;
-                bit0[y] |= 1 << x;
-            } else {
-                // shouldn't happen
-                std::cout << "The png has more than 2 colors!" << std::endl;
+                if (palette_added[0] == color) {
+                    bit1[y] |= 1 << x;
+                } else if (palette_added[1] == color) {
+                    bit1[y] |= 1 << x;
+                    bit0[y] |= 1 << x;
+                } else {
+                    // shouldn't happen
+                    std::cout << "The png has more than 2 colors!" << std::endl;
+                }
             }
         }
-    }
-    assert(palette_added.size() == 3); // should only contain white and pink
+        assert(palette_added.size() == 2); // should only contain white, gray, and black
 
-    palettes.push_back({glm::u8vec4(0,0,0,255),
-                        palette_added[0],
-                        palette_added[1],
-                        palette_added[2]});
-    tiles.push_back({ bit0, bit1 });
-    for (uint32_t i = 0; i < 60; i++) {
-        sprites.push_back({ 0, 0, 1, 0b0000001 });
-    }
+        palettes.push_back({glm::u8vec4(),
+                            glm::u8vec4(0, 0, 0, 255),
+                            palette_added[0],
+                            palette_added[1]});
+        tiles.push_back({ bit0, bit1 });
 
-    // reset intermediary storages
-    palette_added.clear();
-    bit0.fill(0);
-    bit1.fill(0);
-
-    // Load background (Chessboard)
-    // Background is consisted of two tiles alternating throughout the buffer, taking of indexes 2 and 3 of palette and tile.
-    try {
-        load_png(data_path("../assets/Chessboard_tile1.png"), &palette_size, &palette_data, UpperLeftOrigin);
-    }
-    catch (std::runtime_error& e) {
-        std::cout << e.what();
-    }
-    assert(palette_size.x == 8 && palette_size.y == 8);
-
-    for (uint32_t y = 0; y < palette_size.y; y++) {
-        for (uint32_t x = 0; x < palette_size.x; x++) {
-            glm::u8vec4 color = palette_data[y * palette_size.x + x];
-            if (std::find(palette_added.begin(), palette_added.end(), color) == palette_added.end()) 
-                palette_added.push_back(color);
-
-            if (palette_added[0] == color) {
-                bit1[y] |= 1 << x;
-            } else if (palette_added[1] == color) {
-                bit1[y] |= 1 << x;
-                bit0[y] |= 1 << x;
-            } else {
-                // shouldn't happen
-                std::cout << "The png has more than 2 colors!" << std::endl;
+        // generate the background array
+        for (uint32_t y = 0; y < PPU466::BackgroundHeight; y++) {
+            for (uint32_t x = 0; x < PPU466::BackgroundWidth; x++) {
+                if ((x % 2 + y % 2) % 2 == 0) {
+                    background.push_back(0b0000000000000000);
+                } else {
+                    background.push_back(0b0000000100000001);
+                }
             }
         }
+        assert(background.size() == PPU466::BackgroundHeight * PPU466::BackgroundWidth);
+
+        // reset intermediary storages
+        palette_added.clear();
+        bit0.fill(0);
+        bit1.fill(0);
     }
-    assert(palette_added.size() == 2); // should only contain white, gray, and black
 
-    palettes.push_back({glm::u8vec4(),
-                        glm::u8vec4(0, 0, 0, 255),
-                        palette_added[0],
-                        palette_added[1]});
-    tiles.push_back({ bit0, bit1 });
 
-    // reset intermediary storages
-    palette_added.clear();
-    bit0.fill(0);
-    bit1.fill(0);
+    // Note that for some png assets, because we encounter 
+    // the colored pixel first instead of transparent pixel first, the order
+    // in which we write the bit arrays is flipped.
 
-    try {
-        load_png(data_path("../assets/Chessboard_tile2.png"), &palette_size, &palette_data, UpperLeftOrigin);
-    }
-    catch (std::runtime_error& e) {
-        std::cout << e.what();
-    }
-    assert(palette_size.x == 8 && palette_size.y == 8);
+    {// Generate player (King)
+        // King takes index 2~5 (U/R/D/L) of palette and tile, and index 0 of sprite, and is rendered in front of the background.
+        try {
+            load_png(data_path("../assets/King_up.png"), &palette_size, &palette_data, UpperLeftOrigin);
+        }
+        catch (std::runtime_error& e) {
+            std::cout << e.what();
+        }
+        assert(palette_size.x == 8 && palette_size.y == 8);
 
-    for (uint32_t y = 0; y < palette_size.y; y++) {
-        for (uint32_t x = 0; x < palette_size.x; x++) {
-            glm::u8vec4 color = palette_data[y * palette_size.x + x];
-            if (std::find(palette_added.begin(), palette_added.end(), color) == palette_added.end()) 
-                palette_added.push_back(color);
+        for (uint32_t y = 0; y < palette_size.y; y++) {
+            for (uint32_t x = 0; x < palette_size.x; x++) {
+                glm::u8vec4 color = palette_data[y * palette_size.x + x];
+                if (std::find(palette_added.begin(), palette_added.end(), color) == palette_added.end()) 
+                    palette_added.push_back(color);
 
-            if (palette_added[0] == color) {
-                bit1[y] |= 1 << x;
-            } else if (palette_added[1] == color) {
-                bit1[y] |= 1 << x;
-                bit0[y] |= 1 << x;
-            } else {
-                // shouldn't happen
-                std::cout << "The png has more than 2 colors!" << std::endl;
+                if (palette_added[0] == color) {
+                    bit1[y] |= 1 << x;
+                } else if (palette_added[1] == color) {
+                    bit1[y] |= 1 << x;
+                    bit0[y] |= 1 << x;
+                } else {
+                    // shouldn't happen
+                    std::cout << "The png has more than 2 colors!" << std::endl;
+                }
             }
         }
-    }
-    assert(palette_added.size() == 2); // should only contain white, gray, and black
+        assert(palette_added.size() == 2); // should only contain white and green
 
-    palettes.push_back({glm::u8vec4(),
-                        glm::u8vec4(0, 0, 0, 255),
-                        palette_added[0],
-                        palette_added[1]});
-    tiles.push_back({ bit0, bit1 });
+        palettes.push_back({glm::u8vec4(),
+                            glm::u8vec4(0, 0, 0, 255),
+                            palette_added[0],
+                            palette_added[1]});
+        tiles.push_back({ bit0, bit1 });
+        sprites.push_back({ 128, 120, 2, 0b0000010 });
 
-    // generate the background array
-    for (uint32_t y = 0; y < PPU466::BackgroundHeight; y++) {
-        for (uint32_t x = 0; x < PPU466::BackgroundWidth; x++) {
-            if ((x % 2 + y % 2) % 2 == 0) {
-                background.push_back(0b0000001000000010);
-            } else {
-                background.push_back(0b0000001100000011);
+        // reset intermediary storages
+        palette_added.clear();
+        bit0.fill(0);
+        bit1.fill(0);
+
+        try {
+            load_png(data_path("../assets/King_right.png"), &palette_size, &palette_data, UpperLeftOrigin);
+        }
+        catch (std::runtime_error& e) {
+            std::cout << e.what();
+        }
+        assert(palette_size.x == 8 && palette_size.y == 8);
+
+        for (uint32_t y = 0; y < palette_size.y; y++) {
+            for (uint32_t x = 0; x < palette_size.x; x++) {
+                glm::u8vec4 color = palette_data[y * palette_size.x + x];
+                if (std::find(palette_added.begin(), palette_added.end(), color) == palette_added.end()) 
+                    palette_added.push_back(color);
+
+                if (palette_added[0] == color) {
+                    bit1[y] |= 1 << x;
+                } else if (palette_added[1] == color) {
+                    bit1[y] |= 1 << x;
+                    bit0[y] |= 1 << x;
+                } else {
+                    // shouldn't happen
+                    std::cout << "The png has more than 2 colors!" << std::endl;
+                }
             }
         }
+        assert(palette_added.size() == 2); // should only contain white and green
+
+        tiles.push_back({ bit0, bit1 });
+
+        // reset intermediary storages
+        palette_added.clear();
+        bit0.fill(0);
+        bit1.fill(0);
+
+        try {
+            load_png(data_path("../assets/King_down.png"), &palette_size, &palette_data, UpperLeftOrigin);
+        }
+        catch (std::runtime_error& e) {
+            std::cout << e.what();
+        }
+        assert(palette_size.x == 8 && palette_size.y == 8);
+
+        for (uint32_t y = 0; y < palette_size.y; y++) {
+            for (uint32_t x = 0; x < palette_size.x; x++) {
+                glm::u8vec4 color = palette_data[y * palette_size.x + x];
+                if (std::find(palette_added.begin(), palette_added.end(), color) == palette_added.end()) 
+                    palette_added.push_back(color);
+
+                if (palette_added[0] == color) {
+                    bit1[y] |= 1 << x;
+                    bit0[y] |= 1 << x;
+                } else if (palette_added[1] == color) {
+                    bit1[y] |= 1 << x;
+                } else {
+                    // shouldn't happen
+                    std::cout << "The png has more than 2 colors!" << std::endl;
+                }
+            }
+        }
+        assert(palette_added.size() == 2); // should only contain white and green
+
+        tiles.push_back({ bit0, bit1 });
+
+        // reset intermediary storages
+        palette_added.clear();
+        bit0.fill(0);
+        bit1.fill(0);
+
+        try {
+            load_png(data_path("../assets/King_left.png"), &palette_size, &palette_data, UpperLeftOrigin);
+        }
+        catch (std::runtime_error& e) {
+            std::cout << e.what();
+        }
+        assert(palette_size.x == 8 && palette_size.y == 8);
+
+        for (uint32_t y = 0; y < palette_size.y; y++) {
+            for (uint32_t x = 0; x < palette_size.x; x++) {
+                glm::u8vec4 color = palette_data[y * palette_size.x + x];
+                if (std::find(palette_added.begin(), palette_added.end(), color) == palette_added.end()) 
+                    palette_added.push_back(color);
+
+                if (palette_added[0] == color) {
+                    bit1[y] |= 1 << x;
+                    bit0[y] |= 1 << x;
+                } else if (palette_added[1] == color) {
+                    bit1[y] |= 1 << x;
+                } else {
+                    // shouldn't happen
+                    std::cout << "The png has more than 2 colors!" << std::endl;
+                }
+            }
+        }
+        assert(palette_added.size() == 2); // should only contain white and green
+
+        tiles.push_back({ bit0, bit1 });
+
+        // reset intermediary storages
+        palette_added.clear();
+        bit0.fill(0);
+        bit1.fill(0);
     }
-    assert(background.size() == PPU466::BackgroundHeight * PPU466::BackgroundWidth);
+
+    // Generate bullet (Pawn)
+    {// Pawn takes index 6~9 (U/R/D/L) of palette and tile, and index 1 of sprite, and is rendered in front of the background.
+        try {
+            load_png(data_path("../assets/Pawn_up.png"), &palette_size, &palette_data, UpperLeftOrigin);
+        }
+        catch (std::runtime_error& e) {
+            std::cout << e.what();
+        }
+        assert(palette_size.x == 8 && palette_size.y == 8);
+
+        for (uint32_t y = 0; y < palette_size.y; y++) {
+            for (uint32_t x = 0; x < palette_size.x; x++) {
+                glm::u8vec4 color = palette_data[y * palette_size.x + x];
+                if (std::find(palette_added.begin(), palette_added.end(), color) == palette_added.end()) 
+                    palette_added.push_back(color);
+
+                if (palette_added[0] == color) {
+                    bit1[y] |= 1 << x;
+                } else if (palette_added[1] == color) {
+                    bit1[y] |= 1 << x;
+                    bit0[y] |= 1 << x;
+                } else {
+                    // shouldn't happen
+                    std::cout << "The png has more than 2 colors!" << std::endl;
+                }
+            }
+        }
+        assert(palette_added.size() == 2); // should only contain white and green
+
+        palettes.push_back({glm::u8vec4(),
+                            glm::u8vec4(0, 0, 0, 255),
+                            palette_added[0],
+                            palette_added[1]});
+        tiles.push_back({ bit0, bit1 });
+        for (uint32_t i = 0; i < 60; i++) {
+            sprites.push_back({ 0, 0, 6, 0b0000011 });
+        }
+
+        // reset intermediary storages
+        palette_added.clear();
+        bit0.fill(0);
+        bit1.fill(0);
+
+        try {
+            load_png(data_path("../assets/Pawn_right.png"), &palette_size, &palette_data, UpperLeftOrigin);
+        }
+        catch (std::runtime_error& e) {
+            std::cout << e.what();
+        }
+        assert(palette_size.x == 8 && palette_size.y == 8);
+
+        for (uint32_t y = 0; y < palette_size.y; y++) {
+            for (uint32_t x = 0; x < palette_size.x; x++) {
+                glm::u8vec4 color = palette_data[y * palette_size.x + x];
+                if (std::find(palette_added.begin(), palette_added.end(), color) == palette_added.end()) 
+                    palette_added.push_back(color);
+
+                if (palette_added[0] == color) {
+                    bit1[y] |= 1 << x;
+                } else if (palette_added[1] == color) {
+                    bit1[y] |= 1 << x;
+                    bit0[y] |= 1 << x;
+                } else {
+                    // shouldn't happen
+                    std::cout << "The png has more than 2 colors!" << std::endl;
+                }
+            }
+        }
+        assert(palette_added.size() == 2); // should only contain white and green
+
+        tiles.push_back({ bit0, bit1 });
+
+        // reset intermediary storages
+        palette_added.clear();
+        bit0.fill(0);
+        bit1.fill(0);
+
+        try {
+            load_png(data_path("../assets/Pawn_down.png"), &palette_size, &palette_data, UpperLeftOrigin);
+        }
+        catch (std::runtime_error& e) {
+            std::cout << e.what();
+        }
+        assert(palette_size.x == 8 && palette_size.y == 8);
+
+        for (uint32_t y = 0; y < palette_size.y; y++) {
+            for (uint32_t x = 0; x < palette_size.x; x++) {
+                glm::u8vec4 color = palette_data[y * palette_size.x + x];
+                if (std::find(palette_added.begin(), palette_added.end(), color) == palette_added.end()) 
+                    palette_added.push_back(color);
+
+                if (palette_added[0] == color) {
+                    bit1[y] |= 1 << x;
+                } else if (palette_added[1] == color) {
+                    bit1[y] |= 1 << x;
+                    bit0[y] |= 1 << x;
+                } else {
+                    // shouldn't happen
+                    std::cout << "The png has more than 2 colors!" << std::endl;
+                }
+            }
+        }
+        assert(palette_added.size() == 2); // should only contain white and green
+
+        tiles.push_back({ bit0, bit1 });
+
+        // reset intermediary storages
+        palette_added.clear();
+        bit0.fill(0);
+        bit1.fill(0);
+
+        try {
+            load_png(data_path("../assets/Pawn_left.png"), &palette_size, &palette_data, UpperLeftOrigin);
+        }
+        catch (std::runtime_error& e) {
+            std::cout << e.what();
+        }
+        assert(palette_size.x == 8 && palette_size.y == 8);
+
+        for (uint32_t y = 0; y < palette_size.y; y++) {
+            for (uint32_t x = 0; x < palette_size.x; x++) {
+                glm::u8vec4 color = palette_data[y * palette_size.x + x];
+                if (std::find(palette_added.begin(), palette_added.end(), color) == palette_added.end()) 
+                    palette_added.push_back(color);
+
+                if (palette_added[0] == color) {
+                    bit1[y] |= 1 << x;
+                } else if (palette_added[1] == color) {
+                    bit1[y] |= 1 << x;
+                    bit0[y] |= 1 << x;
+                } else {
+                    // shouldn't happen
+                    std::cout << "The png has more than 2 colors!" << std::endl;
+                }
+            }
+        }
+        assert(palette_added.size() == 2); // should only contain white and green
+
+        tiles.push_back({ bit0, bit1 });
+
+        // reset intermediary storages
+        palette_added.clear();
+        bit0.fill(0);
+        bit1.fill(0);
+    }
+
+    // Generate Win/Lose tiles
+    { // Win : Palette 4 & Tile 10 / Lost : Palette 5 & Tile 11
+        try {
+            load_png(data_path("../assets/Win.png"), &palette_size, &palette_data, UpperLeftOrigin);
+        }
+        catch (std::runtime_error& e) {
+            std::cout << e.what();
+        }
+        assert(palette_size.x == 8 && palette_size.y == 8);
+
+        for (uint32_t y = 0; y < palette_size.y; y++) {
+            for (uint32_t x = 0; x < palette_size.x; x++) {
+                glm::u8vec4 color = palette_data[y * palette_size.x + x];
+                if (std::find(palette_added.begin(), palette_added.end(), color) == palette_added.end()) 
+                    palette_added.push_back(color);
+
+                if (palette_added[0] != color) {
+                    // shouldn't happen
+                    std::cout << "The png has more than 1 colors!" << std::endl;
+                }
+            }
+        }
+        assert(palette_added.size() == 1); // should only contain white, gray, and black
+
+        palettes.push_back({palette_added[0],
+                            glm::u8vec4(),
+                            glm::u8vec4(),
+                            glm::u8vec4()});
+        tiles.push_back({ bit0, bit1 });
+
+        // reset intermediary storages
+        palette_added.clear();
+        bit0.fill(0);
+        bit1.fill(0);
+
+        try {
+            load_png(data_path("../assets/Lose.png"), &palette_size, &palette_data, UpperLeftOrigin);
+        }
+        catch (std::runtime_error& e) {
+            std::cout << e.what();
+        }
+        assert(palette_size.x == 8 && palette_size.y == 8);
+
+        for (uint32_t y = 0; y < palette_size.y; y++) {
+            for (uint32_t x = 0; x < palette_size.x; x++) {
+                glm::u8vec4 color = palette_data[y * palette_size.x + x];
+                if (std::find(palette_added.begin(), palette_added.end(), color) == palette_added.end()) 
+                    palette_added.push_back(color);
+                    
+                if (palette_added[0] != color) {
+                    // shouldn't happen
+                    std::cout << "The png has more than 1 colors!" << std::endl;
+                }
+            }
+        }
+        assert(palette_added.size() == 1); // should only contain white, gray, and black
+
+        palettes.push_back({palette_added[0],
+                            glm::u8vec4(),
+                            glm::u8vec4(),
+                            glm::u8vec4()});
+        tiles.push_back({ bit0, bit1 });
+
+        assert(background.size() == PPU466::BackgroundHeight * PPU466::BackgroundWidth);
+
+        // reset intermediary storages
+        palette_added.clear();
+        bit0.fill(0);
+        bit1.fill(0);
+    }
+
 
     // sanity check on what I'm importing
-    assert(palettes.size() == 4);
-    assert(tiles.size() == 4);
+    assert(palettes.size() == 6);
+    assert(tiles.size() == 12);
     assert(sprites.size() == 61);
 
     // export binary data to be read during runtime
