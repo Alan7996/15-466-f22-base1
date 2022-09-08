@@ -1,6 +1,6 @@
 #include "PlayMode.hpp"
 
-#include "asset_generator.hpp"
+//#include "asset_generator.hpp"
 #include "asset_loader.hpp"
 
 //for the GL_ERRORS() macro:
@@ -19,12 +19,9 @@ PlayMode::PlayMode() {
 	//  make yourself a script that spits out the code that you paste in here
 	//   and check that script into your repository.
 
-	generate_data();
-
-	// Player (King) is 0 index, Bullet (Pawn) is 1 index
+	//generate_data();
 	load_asset(ppu);
 	
-	//
 	player_at = glm::vec2(ppu.sprites[0].x, ppu.sprites[0].y);
 
 	// randomly generate bullet positions, taking turns on each side
@@ -62,6 +59,7 @@ PlayMode::PlayMode() {
 		bullets.push_back({glm::vec2(ppu.sprites[i].x, ppu.sprites[i].y), glm::vec2()});
 	}
 
+	// prepare backgrounds for win / lose condition
 	win_bg.resize(ppu.BackgroundWidth * ppu.BackgroundHeight);
 	uint16_t win_data = 0b0000010000001010u;
 	std::fill(win_bg.begin(), win_bg.end(), win_data);
@@ -150,6 +148,8 @@ void PlayMode::update(float elapsed) {
 	for (uint8_t i = 0; i < active_bullet_count; i++) {
 		bullets[i].sprite_at.x += bullets[i].dir.x * bulletSpeed * elapsed;
 		bullets[i].sprite_at.y += bullets[i].dir.y * bulletSpeed * elapsed;
+
+		// if the bullet exits screen, reset it
 		if (bullets[i].sprite_at.x < 0 || bullets[i].sprite_at.x > PPU466::ScreenWidth ||
 			bullets[i].sprite_at.y < 0 || bullets[i].sprite_at.y > PPU466::ScreenHeight) {
 			ppu.sprites[i + 1].attributes |= 0b10000000; // make invisible
@@ -168,7 +168,7 @@ void PlayMode::update(float elapsed) {
 		elapsed_time_since = 0;
 		bullet_interval -= 0.05f;
 
-		ppu.sprites[1 + active_bullet_count].attributes &= 0b01111111; // revert tile back to in front of background
+		ppu.sprites[1 + active_bullet_count].attributes &= 0b01111111; // make visible
 
 		// initialize new bullet
 		bullets[active_bullet_count].sprite_at = glm::vec2(ppu.sprites[1 + active_bullet_count].x, ppu.sprites[1 + active_bullet_count].y);
@@ -204,7 +204,6 @@ void PlayMode::draw(glm::uvec2 const &drawable_size) {
 
 void PlayMode::gameWin() {
 
-	// printf("%zu\n", win_bg.size());
 	gameState = VICTORY;
 
 	// make player and all bullets invisible
