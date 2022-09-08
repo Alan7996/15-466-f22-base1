@@ -128,18 +128,26 @@ void PlayMode::update(float elapsed) {
 	if (left.pressed) {
 		player_at.x -= PlayerSpeed * elapsed;
 		ppu.sprites[0].index = 5;
+
+		if (player_at.x <= 0.0f) player_at.x = 0;
 	}
 	if (right.pressed) {
 		player_at.x += PlayerSpeed * elapsed;
 		ppu.sprites[0].index = 3;
+
+		if (player_at.x >= ppu.ScreenWidth - 8) player_at.x = ppu.ScreenWidth - 8;
 	}
 	if (down.pressed) {
 		player_at.y -= PlayerSpeed * elapsed;
 		ppu.sprites[0].index = 4;
+
+		if (player_at.y <= 0.0f) player_at.y = 0;
 	}
 	if (up.pressed) {
 		player_at.y += PlayerSpeed * elapsed;
 		ppu.sprites[0].index = 2;
+
+		if (player_at.y >= ppu.ScreenHeight - 8) player_at.y = ppu.ScreenHeight - 8;
 	}
 
 	//reset button press counters:

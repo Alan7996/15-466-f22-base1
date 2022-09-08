@@ -34,18 +34,3 @@ Press any combination of the four direction keys to move towards Left/Right/Up/D
 (TODO: describe the controls and (if needed) goals/strategy.)
 
 This game was built with [NEST](NEST.md).
-
-
-
-Goal : make a bullet hell game but with flappy bird kind of jumping of playable character
-
-Gameplay : player starts at the middle of the map, and can press LRUD or diagonal keys to move by one unit in that direction
-there should be a timer displayed at right top corner that counts down. if the player survives till the end he wins.
-
-Needed assets : 
-- background (just some black and white checkerboard (chessboard?) should be fine)
-- countdown numbers (0~9 digits)
-- bullet objects (let's just make this one type, pawn)
-- playable character (king)
-
-Asset pipeline : should convert all png assets to binaries (probably should compress them to uniformly usable size)
