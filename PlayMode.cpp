@@ -198,7 +198,7 @@ void PlayMode::update(float elapsed) {
 			player_at.y - bullets[active_bullet_count].sprite_at.y == 0 ? 0 : (player_at.y - bullets[active_bullet_count].sprite_at.y));
 
 		// normalize direction
-		float dir_mag = std::sqrtf(bullets[active_bullet_count].dir.x * bullets[active_bullet_count].dir.x + bullets[active_bullet_count].dir.y * bullets[active_bullet_count].dir.y);
+		float dir_mag = std::sqrt(bullets[active_bullet_count].dir.x * bullets[active_bullet_count].dir.x + bullets[active_bullet_count].dir.y * bullets[active_bullet_count].dir.y);
 		bullets[active_bullet_count].dir.x /= dir_mag;
 		bullets[active_bullet_count].dir.y /= dir_mag;
 		
