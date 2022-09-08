@@ -23,12 +23,12 @@ PlayMode::PlayMode() {
 	// generate_data();
 
 	// load data from binary asset file
-	load_asset(ppu);
+	load_asset(ppu, total_bullet_count);
 	
 	player_at = glm::vec2(ppu.sprites[0].x, ppu.sprites[0].y);
 
 	// randomly generate bullet positions, taking turns on each side
-	// we know there are 60 enemy bullets, so 15 on each side
+	// we know there are total_bullet_counts (60 for my game) number of enemy bullets, so 15 on each side
 	// random number generation based on https://stackoverflow.com/questions/5008804/generating-a-random-integer-from-a-range
 	std::random_device rd;
 	std::mt19937 rng(rd());
@@ -44,7 +44,7 @@ PlayMode::PlayMode() {
 	std::uniform_int_distribution<int> uniStart(0, 3);
 	uint32_t randomOffset = static_cast<uint32_t>(uniStart(rng));
 
-	for (uint32_t i = 1; i < 61; i++) {
+	for (uint32_t i = 1; i < 1u + total_bullet_count; i++) {
 		if (i % 4 == (0 + randomOffset) % 4) { // top
 			ppu.sprites[i].x = static_cast<uint8_t>(uniWidth(rng));
 			ppu.sprites[i].y = static_cast<uint8_t>(scrHeight);
@@ -165,6 +165,7 @@ void PlayMode::update(float elapsed) {
 			bullets[i].is_active = false;
 			ppu.sprites[i + 1].attributes |= 0b10000000; // make invisible
 			bullets[i].dir = glm::vec2(); // reset movement
+			if (i == total_bullet_count) gameWin();
 		}
 		else { // otherwise check collision
 			if (std::abs(bullets[i].sprite_at.x - player_at.x) <= 6.0f && std::abs(bullets[i].sprite_at.y - player_at.y) <= 6.0f) {
@@ -176,10 +177,7 @@ void PlayMode::update(float elapsed) {
 	// activate a new bullet every certain time interval
 	elapsed_time_since += elapsed;
 	if (gameState == PLAYING && elapsed_time_since > bullet_interval) {
-		if (active_bullet_count == 60) {
-			gameWin();
-			return;
-		}
+		if (active_bullet_count == total_bullet_count) return;
 
 		elapsed_time_since = 0;
 		bullet_interval -= 0.05f;
@@ -190,9 +188,14 @@ void PlayMode::update(float elapsed) {
 		bullets[active_bullet_count].is_active = true;
 		bullets[active_bullet_count].sprite_at = glm::vec2(ppu.sprites[1 + active_bullet_count].x, ppu.sprites[1 + active_bullet_count].y);
 		bullets[active_bullet_count].dir = glm::vec2(
-			player_at.x - bullets[active_bullet_count].sprite_at.x == 0 ? 0 : (player_at.x - bullets[active_bullet_count].sprite_at.x) / std::abs(player_at.x - bullets[active_bullet_count].sprite_at.x), 
-			player_at.y - bullets[active_bullet_count].sprite_at.y == 0 ? 0 : (player_at.y - bullets[active_bullet_count].sprite_at.y) / std::abs(player_at.y - bullets[active_bullet_count].sprite_at.y));
+			player_at.x - bullets[active_bullet_count].sprite_at.x == 0 ? 0 : (player_at.x - bullets[active_bullet_count].sprite_at.x), 
+			player_at.y - bullets[active_bullet_count].sprite_at.y == 0 ? 0 : (player_at.y - bullets[active_bullet_count].sprite_at.y));
 
+		// normalize direction
+		float dir_mag = std::sqrtf(bullets[active_bullet_count].dir.x * bullets[active_bullet_count].dir.x + bullets[active_bullet_count].dir.y * bullets[active_bullet_count].dir.y);
+		bullets[active_bullet_count].dir.x /= dir_mag;
+		bullets[active_bullet_count].dir.y /= dir_mag;
+		
 		active_bullet_count++;
 		bulletSpeed += 1.0f;
 	}
@@ -224,7 +227,7 @@ void PlayMode::gameWin() {
 	gameState = VICTORY;
 
 	// make player and all bullets invisible
-	for (uint8_t i = 0; i < 61; i++) {
+	for (uint8_t i = 0; i < 1 + total_bullet_count; i++) {
 		ppu.sprites[i].attributes |= 0b10000000;
 	}
 
@@ -239,7 +242,7 @@ void PlayMode::gameLose() {
 	gameState = DEFEAT;
 
 	// make player and all bullets invisible
-	for (uint8_t i = 0; i < 61; i++) {
+	for (uint8_t i = 0; i < 1 + total_bullet_count; i++) {
 		ppu.sprites[i].attributes |= 0b10000000;
 	}
 

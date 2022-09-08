@@ -44,6 +44,7 @@ struct PlayMode : Mode {
 
 	std::vector< Bullet > bullets;
 	uint8_t active_bullet_count = 0;
+	uint8_t total_bullet_count = 0;
 
 	float elapsed_time_since = 0;
 	float bullet_interval = 3;

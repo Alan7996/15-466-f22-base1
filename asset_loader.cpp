@@ -8,7 +8,7 @@
 #include <fstream>
 #include <glm/glm.hpp>
 
-void load_asset(PPU466 &ppu) {
+void load_asset(PPU466 &ppu, uint8_t &bullet_count) {
 
     std::ifstream ifs(data_path("asset.bin"), std::ios::binary);
 
@@ -30,8 +30,11 @@ void load_asset(PPU466 &ppu) {
 	}
 	for (uint32_t i = 0; i < sprites.size(); i++) {
 		ppu.sprites[i] = sprites[i];
+		bullet_count++;
 	}
     for (uint32_t i = 0; i < background.size(); i++) {
 		ppu.background[i] = background[i];
 	}
+
+	bullet_count--; // accomodate for player sprite
 }
