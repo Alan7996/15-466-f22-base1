@@ -35,4 +35,7 @@ If you survive till the end, you win (and face a congratulatory green screen)!
 The bullets get spawned from each wall of the screen taking turns, and the bullet respawn time and travel speed gets faster as game progresses.
 There is no special trick or strategy in this game, you just need to be good with your arrow key controls.
 
+
+This game was inspired by Rush E.
+
 This game was built with [NEST](NEST.md).
