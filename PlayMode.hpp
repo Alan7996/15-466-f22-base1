@@ -16,6 +16,7 @@ struct PlayMode : Mode {
 	virtual void draw(glm::uvec2 const &drawable_size) override;
 
 	void gameWin();
+	void gameLose();
 
 	//----- game state -----
 	enum GameState{
@@ -36,6 +37,7 @@ struct PlayMode : Mode {
 
 	//Bullet struct
 	struct Bullet {
+		bool is_active;
 		glm::vec2 sprite_at;
 		glm::vec2 dir;
 	};
