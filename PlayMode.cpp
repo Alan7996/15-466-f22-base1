@@ -68,11 +68,9 @@ PlayMode::PlayMode() {
 	}
 
 	// prepare backgrounds for win / lose condition
-	win_bg.resize(ppu.BackgroundWidth * ppu.BackgroundHeight);
 	uint16_t win_data = 0b0000010000001010u;
 	std::fill(win_bg.begin(), win_bg.end(), win_data);
 
-	lose_bg.resize(ppu.BackgroundWidth * ppu.BackgroundHeight);
 	uint16_t lose_data = 0b0000010100001011u;
 	std::fill(lose_bg.begin(), lose_bg.end(), lose_data);
 
@@ -165,7 +163,7 @@ void PlayMode::update(float elapsed) {
 			bullets[i].is_active = false;
 			ppu.sprites[i + 1].attributes |= 0b10000000; // make invisible
 			bullets[i].dir = glm::vec2(); // reset movement
-			if (i == total_bullet_count) gameWin();
+			if (i + 1 == total_bullet_count) gameWin();
 		}
 		else { // otherwise check collision
 			if (std::abs(bullets[i].sprite_at.x - player_at.x) <= 6.0f && std::abs(bullets[i].sprite_at.y - player_at.y) <= 6.0f) {
@@ -232,9 +230,7 @@ void PlayMode::gameWin() {
 	}
 
 	// activate victory background
-    for (uint32_t i = 0; i < win_bg.size(); i++) {
-		ppu.background[i] = win_bg[i];
-	}
+	ppu.background = win_bg;
 }
 
 void PlayMode::gameLose() {
@@ -247,7 +243,5 @@ void PlayMode::gameLose() {
 	}
 
 	// activate victory background
-    for (uint32_t i = 0; i < lose_bg.size(); i++) {
-		ppu.background[i] = lose_bg[i];
-	}
+	ppu.background = lose_bg;
 }

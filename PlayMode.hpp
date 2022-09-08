@@ -26,8 +26,8 @@ struct PlayMode : Mode {
 	} gameState;
 
 	// holders for win/lose background
-    std::vector< uint16_t > win_bg;
-    std::vector< uint16_t > lose_bg;
+	std::array< uint16_t, PPU466::BackgroundWidth * PPU466::BackgroundHeight > win_bg;
+	std::array< uint16_t, PPU466::BackgroundWidth * PPU466::BackgroundHeight > lose_bg;
 
 	//input tracking:
 	struct Button {

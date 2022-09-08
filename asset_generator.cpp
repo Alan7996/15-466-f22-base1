@@ -25,7 +25,7 @@ void generate_data() {
     std::array< uint8_t, 8 > bit0 = { 0, 0, 0, 0, 0, 0, 0, 0 };
 	std::array< uint8_t, 8 > bit1 = { 0, 0, 0, 0, 0, 0, 0, 0 };
 
-    // load_png call eror catching and palette extraction code as suggested by David Lyons (dalyons)
+    // load_png call error catching and palette extraction code as suggested by David Lyons (dalyons)
 
     // Generate background (Chessboard)
     {// Background is consisted of two tiles alternating throughout the buffer, taking of indexes 0 and 1 of palette and tile.
